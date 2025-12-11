@@ -1,0 +1,148 @@
+@startuml Car Rental System
+allowmixing
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+
+' 1. Value Objects
+class Clock <<Interface>> {
+  + now(): datetime
+}
+class SystemClock
+class FixedClock
+class ChargeItem {
+  description: str
+  amount: Money
+}
+Clock <|.. SystemClock : "implements"
+Clock <|.. FixedClock : "implements"
+
+' 2. Ports
+class Notification <<Interface>> {
+  + send(customer, message)
+}
+class Payment <<Interface>> {
+  + authorize_deposit(customer, amount): str
+  + finalize_payment(customer, amount): str
+}
+
+' 3. User Entities
+class Customer {
+  id: UUID
+  first_name: str
+  last_name: str
+  email: str
+}
+class BranchAgent {
+  id: UUID
+  first_name: str
+  last_name: str
+}
+
+' 4. Fleet Entities
+class Location {
+  id: UUID
+  name: str
+  address: str
+}
+class VehicleClass {
+  id: UUID
+  name: str
+  base_rate: Money
+}
+class AddOn {
+  id: UUID
+  name: str
+  daily_rate: Money
+}
+class InsuranceTier {
+  id: UUID
+  name: str
+  daily_rate: Money
+}
+class Vehicle {
+  id: UUID
+  license_plate: str
+  odometer: Kilometers
+  fuel_level: FuelLevel
+  state: VehicleState
+}
+class MaintenanceRecord {
+  id: UUID
+  service_type: str
+  odometer_threshold: Kilometers
+  time_threshold: timedelta
+}
+enum VehicleState
+
+' 5. Rental Entities
+class Reservation {
+  id: UUID
+  pickup_time: datetime
+  return_time: datetime
+  status: ReservationStatus
+}
+class RentalAgreement {
+  id: UUID
+  start_odometer: Kilometers
+  start_fuel_level: FuelLevel
+  due_time: datetime
+}
+class Invoice {
+  id: UUID
+  status: InvoiceStatus
+  total_amount: Money
+}
+class BillingPayment {
+  id: UUID
+  amount_charged: Money
+  status: BillingPaymentStatus
+}
+enum ReservationStatus
+enum InvoiceStatus
+enum BillingPaymentStatus
+
+'6. Pricing Strategy
+class PricingRule <<Interface>> {
+  + calculate_charges(agreement): List<ChargeItem>
+}
+class PricingPolicy {
+  + calculate_total(agreement): List<ChargeItem>
+}
+class BaseDailyRateRule
+class PerDayAddOnRule
+class InsuranceRule
+
+PricingRule <|.. BaseDailyRateRule : "implements"
+PricingRule <|.. PerDayAddOnRule : "implements"
+PricingRule <|.. InsuranceRule : "implements"
+
+
+' 7. Relationships and Multiplicities
+
+' Customer / Agent
+Customer "1" -- "0..*" Reservation : "makes"
+BranchAgent "1" -- "1" Location : "works at"
+
+' Fleet / Location
+Location "1" -- "0..*" Vehicle : "has"
+Vehicle "1" -- "1" VehicleClass : "is a"
+Vehicle "1" -- "0..*" MaintenanceRecord : "has"
+
+' Reservation / Rental 
+Reservation "1" -- "1" Customer
+Reservation "1" -- "1" VehicleClass : "for"
+Reservation "1" -- "1..2" Location : "at"
+Reservation "1" -- "0..*" AddOn : "includes"
+Reservation "1" -- "0..1" InsuranceTier : "includes"
+RentalAgreement "1" -- "1" Reservation : "fulfills"
+RentalAgreement "1" -- "1" Vehicle : "assigns"
+
+' Billing 
+Invoice "1" -- "1" RentalAgreement : "bills for"
+Invoice "1" -- "*" ChargeItem : "lists"
+Invoice "1" -- "1..*" BillingPayment : "has"
+
+' Pricing
+PricingPolicy "1" -- "1..*" PricingRule : "uses"
+
+@enduml
