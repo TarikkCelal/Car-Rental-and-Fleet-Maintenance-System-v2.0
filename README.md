@@ -1,84 +1,66 @@
 # Car Rental & Fleet Maintenance System (CRFMS)
 
-A **complete, object-oriented system** for managing car rentals, fleet maintenance, and billing — built with **Clean Architecture** and **SOLID principles**.
+This project is a complete, object-oriented system. It implements a **Car Rental & Fleet Maintenance System (CRFMS)** using modern Python, Clean Architecture principles, and a fully testable design.
+
+Version 2.0 introduces persistent storage capabilities, supporting both JSON and Google Protocol Buffers, along with CLI utilities for data conversion and reporting.
 
 ---
 
-## Overview
+# Core Features
 
-**CRFMS** is designed to support the full lifecycle of a car rental operation, including:
+* **Reservation Management:** Create, confirm, and cancel reservations.
 
-- **Customers:** Create and manage reservations.  
-- **Branch Agents:** Handle vehicle pickups and returns, record odometer/fuel data, and assess charges.  
-- **Fleet Managers:** Enforce maintenance holds based on vehicle odometer or time thresholds.
+* **Rental Workflow:** Full logic for vehicle pickup and return, including state changes (Available, Rented, Cleaning).
 
-It accurately calculates:
-- Rental charges  
-- Late fees  
-- Mileage overage  
-- Fuel refill penalties  
+* **Dynamic Pricing:** A flexible pricing system built with the Strategy Pattern.
 
-The system is **fully testable** thanks to an injectable `Clock`, allowing time-based logic to be verified easily.
+* **Penalty Calculation:** Automatically computes late fees, mileage overages, and fuel charges.
 
----
+* **Fleet Maintenance:** Tracks maintenance records and blocks vehicles from rental if service is due.
 
-## Core Design & Architecture
+* **Persistence:** Save and load the entire system state to JSON or Protocol Buffers.
 
-This project follows **Clean Architecture (Ports & Adapters)** and **SOLID** design principles.
-
-### Layers
-
-#### Domain (`crfms/domain`)
-Contains the **core business logic**, **entities**, and **value objects**:
-- Entities: `Vehicle`, `Reservation`, etc.
-- Value Objects: `Money`, `Kilometers`, etc.
-- No dependencies on other layers.
-
-#### Services (`crfms/services`)
-Implements the **application layer**, orchestrating domain entities to perform use cases:
-- `RentalService`
-- `AccountingService`
-- `MaintenanceService`
-- `ReservationService`
-
-#### Adapters (`crfms/adapters`)
-Concrete implementations of the interfaces (ports) defined in the domain:
-- `FakePaymentAdapter` → simulates payment success/failure.  
-- `InMemoryNotificationAdapter` → records sent notifications (great for testing).
-
-### Design Patterns
-
-- **Strategy Pattern:**  
-  `PricingPolicy` uses strategies like `BaseDailyRateRule`, enabling new pricing rules without touching existing code.
-
-- **Dependency Inversion:**  
-  Adapters implement interfaces defined by the domain layer.
+* **Tools:** Command-line utilities for converting data formats and generating text reports.
 
 ---
 
-## Project Structure
+# Architectural Design
 
-```bash
-car_rental_system/
-├── crfms/
-│   ├── adapters/           # Implementations of ports
-│   │   ├── notifications.py
-│   │   └── payments.py
-│   ├── domain/             # Core business logic and entities
-│   │   ├── fleet.py
-│   │   ├── pricing.py
-│   │   ├── rental.py
-│   │   ├── users.py
-│   │   └── values.py
-│   └── services/           # Use-case orchestration layer
-│       ├── accounting.py
-│       ├── database.py
-│       ├── inventory.py
-│       ├── maintenance.py
-│       ├── rental.py
-│       └── reservation.py
-├── tests/
-│   └── test_rental_workflow.py
-├── design.puml             # UML class diagram
-├── requirements.txt        # Dependencies
-└── README.md               # This file
+This system is built using a Clean Architecture (Ports & Adapters) approach, emphasising a separation of concerns and adherence to SOLID principles.
+
+**Core Layers**
+
+* `crfms/domain:` The heart of the application. Contains all core business logic, entities (Vehicle, Reservation), Value Objects (Money, Kilometers), and Ports. It has zero dependencies on other layers.
+
+* `crfms/services:` The orchestration layer. Coordinates domain entities to perform use cases (e.g., RentalService, AccountingService).
+
+* `crfms/adapters:` Concrete implementations of the ports (e.g., FakePaymentAdapter).
+
+* `crfms/persistence:` The new layer handling data storage. It contains the Protocol Buffers schema (.proto), generated code (_pb2.py), and the serialization logic for JSON and binary formats.
+
+---
+
+# Project Structure
+
+    car_rental_system/
+    ├── src/
+    │   └── crfms/              # The main Python package
+    │       ├── __init__.py
+    │       ├── persistence/      # Persistence Layer (JSON & Proto)
+    │       │   ├── __init__.py
+    │       │   ├── crfms.proto     # Protocol Buffers Schema
+    │       │   ├── crfms_pb2.py    # Generated Python code
+    │       │   ├── json_io.py      # JSON serialization logic
+    │       │   └── proto_io.py     # Proto serialization logic
+    │       ├── domain/           # Core entities & logic
+    │       ├── services/         # Use-case orchestration
+    │       └── adapters/         # Ports & Adapters
+    ├── tests/              # All pytest tests
+    ├── converter.py        # Utility: Convert JSON <-> Proto
+    ├── reporter.py         # Utility: Generate text reports
+    ├── test_json_persist.py # Verification script for JSON
+    ├── test_proto_persist.py # Verification script for Proto
+    ├── pytest.ini          # Pytest configuration
+    ├── requirements.txt    # Python dependencies
+    ├── design.puml         # UML Class Diagram
+    └── README.md           # This file
