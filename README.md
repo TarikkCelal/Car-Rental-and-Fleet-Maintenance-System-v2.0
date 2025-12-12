@@ -64,3 +64,64 @@ This system is built using a Clean Architecture (Ports & Adapters) approach, emp
     ├── requirements.txt    # Python dependencies
     ├── design.puml         # UML Class Diagram
     └── README.md           # This file
+
+# Getting Started
+
+**Prerequisites**
+
+* Python 3.11+
+
+* Protocol Buffers Compiler (protoc):
+
+  * Windows: Download protoc-*-win64.zip from GitHub, extract bin/protoc.exe to this project folder or your system PATH.
+
+  * Mac/Linux: Install via brew install protobuf or apt install protobuf-compiler.
+
+# Installation
+
+**Clone the repository:**
+
+    git clone [https://github.com/TarikkCelal/Car-Rental-and-Fleet-Maintenance-System.git](https://github.com/TarikkCelal/Car-Rental-and-Fleet-Maintenance-System.git)
+    cd Car-Rental-and-Fleet-Maintenance-System
+
+
+**Create and activate a virtual environment:**
+
+    python -m venv venv
+    .\venv\Scripts\activate  # Windows
+    # source venv/bin/activate # Mac/Linux
+
+
+**Install dependencies:**
+
+    pip install -r requirements.txt   
+
+# Usage
+
+* **Run Tests**
+To verify the system logic:
+
+        pytest
+
+
+* **Data Tools (Snapshots, Conversion, Reporting)**
+Use the provided scripts to generate data, convert formats, and view reports.
+
+        # Generate dummy data
+        python test_json_persist.py   # Creates snapshot.json
+        python test_proto_persist.py  # Creates snapshot.bin
+        
+        # Convert formats
+        python converter.py --to-proto snapshot.json output.bin
+        python converter.py --to-json snapshot.bin output.json
+        
+        # Generate Reports
+        python reporter.py snapshot.json
+        python reporter.py snapshot.bin --format proto
+
+
+* **Recompile Protocol Buffers (Optional)**
+If you edit crfms.proto, update the Python code with:
+
+        .\protoc -I=src --python_out=src src/crfms/persistence/crfms.proto
+
